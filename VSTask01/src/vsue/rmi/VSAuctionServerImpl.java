@@ -3,9 +3,16 @@ package vsue.rmi;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 public class VSAuctionServerImpl implements VSAuctionService {
 	
+    private final static Logger LOGGER = Logger.getLogger(VSAuctionServerImpl.class.getName());
+
+    static {
+        LOGGER.setLevel(Level.INFO);
+    }
 
 	private ArrayList<VSAuction> runningAuctions = new ArrayList<VSAuction>();
 
@@ -13,10 +20,13 @@ public class VSAuctionServerImpl implements VSAuctionService {
 	public void registerAuction(VSAuction auction, int duration,
 			VSAuctionEventHandler handler) throws VSAuctionException,
 			RemoteException {
+
+        LOGGER.info(String.format("registered auction (%)", auction));
 		
 		boolean auctionAlreadyExists = runningAuctions.contains(auction);
 		
 		if(auctionAlreadyExists){
+            LOGGER.info("User tried to register an already existing auction");
 			throw new VSAuctionException("Auction does already exist");
 		}
 		
@@ -26,7 +36,9 @@ public class VSAuctionServerImpl implements VSAuctionService {
 
 	@Override
 	public synchronized VSAuction[] getAuctions() throws RemoteException {
-		
+
+        LOGGER.info("looking up running auctions");
+
 		clearOldAuctions();
 				
 		return runningAuctions.toArray(new VSAuction[0]);
@@ -41,6 +53,12 @@ public class VSAuctionServerImpl implements VSAuctionService {
 				removeList.add(auction);
 			}
 		}
+
+        if(removeList.size() > 0){
+            LOGGER.info(
+                String.format("clearing %d old auctions", removeList.size())
+            );
+        }
 		
 		for(VSAuction auction : removeList){
 			runningAuctions.remove(auction);
@@ -49,6 +67,10 @@ public class VSAuctionServerImpl implements VSAuctionService {
 	
 	
 	private VSAuction getAuctionByName(String auctionName) throws RemoteException {
+
+
+        LOGGER.info(String.format("User requested Auction with called \"%s\"", auctionName));
+
 		VSAuction identifiedOne = null;
 		
 		for(VSAuction auction : getAuctions()){

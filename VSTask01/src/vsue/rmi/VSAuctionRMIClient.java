@@ -15,13 +15,9 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
 	/* The user name provided via command line. */
 	private final String userName;
 	
-	
 	private VSAuctionService auctionServer = null;
 	
 	private final int THIS_REMOTE_PORT = 0;
-	VSAuctionEventHandler thisRemote;
-	
-	
 	
 	
 	public VSAuctionRMIClient(String userName) {
@@ -34,8 +30,8 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
 	// #############################
 
 	public void init(String registryHost, int registryPort) throws RemoteException, NotBoundException {
-		
-		this.thisRemote = (VSAuctionEventHandler) UnicastRemoteObject.exportObject(this, THIS_REMOTE_PORT);
+        VSAuctionEventHandler thisRemote 
+            = (VSAuctionEventHandler) UnicastRemoteObject.exportObject(this, THIS_REMOTE_PORT);
 		
 		Registry registry = LocateRegistry.getRegistry(registryHost, registryPort);
 		auctionServer = (VSAuctionService) registry.lookup(VSAuctionRMIServer.REGISTRY_NAME);
