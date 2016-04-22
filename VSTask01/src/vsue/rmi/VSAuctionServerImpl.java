@@ -21,7 +21,7 @@ public class VSAuctionServerImpl implements VSAuctionService {
 			VSAuctionEventHandler handler) throws VSAuctionException,
 			RemoteException {
 
-        LOGGER.info(String.format("registered auction (%)", auction));
+        LOGGER.info(String.format("registered auction (%s)", auction));
 		
 		boolean auctionAlreadyExists = runningAuctions.contains(auction);
 		

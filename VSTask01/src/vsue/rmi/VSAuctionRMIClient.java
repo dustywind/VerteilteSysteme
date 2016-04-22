@@ -8,6 +8,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.UnknownFormatConversionException;
 
 
 public class VSAuctionRMIClient implements VSAuctionEventHandler {
@@ -16,6 +17,7 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
 	private final String userName;
 	
 	private VSAuctionService auctionServer = null;
+	private VSAuctionEventHandler thisRemote = null;
 	
 	private final int THIS_REMOTE_PORT = 0;
 	
@@ -30,8 +32,7 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
 	// #############################
 
 	public void init(String registryHost, int registryPort) throws RemoteException, NotBoundException {
-        VSAuctionEventHandler thisRemote 
-            = (VSAuctionEventHandler) UnicastRemoteObject.exportObject(this, THIS_REMOTE_PORT);
+        thisRemote = (VSAuctionEventHandler) UnicastRemoteObject.exportObject(this, THIS_REMOTE_PORT);
 		
 		Registry registry = LocateRegistry.getRegistry(registryHost, registryPort);
 		auctionServer = (VSAuctionService) registry.lookup(VSAuctionRMIServer.REGISTRY_NAME);
@@ -66,7 +67,7 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
 		VSAuction auction = new VSAuction(auctionName, startingPrice);
 		
 		try {
-			auctionServer.registerAuction(auction, duration, this);
+			auctionServer.registerAuction(auction, duration, thisRemote);
 			System.out.printf("registered auction %s\n", auction);
 		} catch (RemoteException e) {
 			e.printStackTrace();
@@ -112,9 +113,7 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
 		}
 		catch(VSAuctionException e) {
 			System.err.println(e.getMessage());
-		}
-	
-
+        }
 	}
 
 	

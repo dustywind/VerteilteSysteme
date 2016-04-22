@@ -11,8 +11,8 @@ public class VSAuction implements Serializable {
 	/* The currently highest bid for this auction. */
 	private int price;
 
-	private long runningUntilMillis;
-//	private transient long runningUntilMillis;
+	//private long runningUntilMillis;
+	private transient long runningUntilMillis;
 
 	
 	public VSAuction(String name, int startingPrice) {
