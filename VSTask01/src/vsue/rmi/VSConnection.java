@@ -28,7 +28,7 @@ public class VSConnection {
         List<Byte> partialChunks = new LinkedList<Byte>();
         
         int readByte = 0;
-        while((readByte = inStream.read()) > 0) {
+        while((readByte = inStream.read()) != -1) {
             byte partialChunk = (byte) readByte;
             partialChunks.add(partialChunk);
         }
