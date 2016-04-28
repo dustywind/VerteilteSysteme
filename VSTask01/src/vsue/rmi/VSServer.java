@@ -19,7 +19,10 @@ public class VSServer {
                 Socket incomming = listen.accept();
                 
                 Thread worker = new Thread(new VSServerWorker(incomming));
-                worker.start();
+                
+                // DEBUG
+                worker.run();
+                //worker.start();
                 
             }
             
