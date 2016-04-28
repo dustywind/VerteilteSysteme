@@ -17,7 +17,7 @@ public class VSObjectConnection {
         this.connection = connection;
     }
 
-    public void sendObject(Serializable object) throws IOException{
+    public void sendObject(Serializable object) throws Exception {
         ByteArrayOutputStream outStream = new ByteArrayOutputStream(BUFFER_SIZE);
         
         ObjectOutputStream objectStream = new ObjectOutputStream(outStream);
@@ -29,7 +29,7 @@ public class VSObjectConnection {
         connection.sendChunk(bytesToSend);
     }
     
-    public Serializable receiveObject() throws IOException, ClassNotFoundException{
+    public Serializable receiveObject() throws IOException, ClassNotFoundException, Exception{
         
         byte[] serializedObject = connection.receiveChunk();
         

@@ -50,7 +50,7 @@ public class VSServer {
                 Serializable o = (Serializable) objConn.receiveObject();
                 objConn.sendObject(o);
                 
-            } catch (ClassNotFoundException | IOException e) {
+            } catch (Exception e) {
 
                 e.printStackTrace();
             }

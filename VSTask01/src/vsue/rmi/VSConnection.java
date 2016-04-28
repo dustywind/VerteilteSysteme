@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -13,7 +12,6 @@ import java.util.List;
 public class VSConnection {
     
     private Socket connection;
-    private final int BUFFER_SIZE = 4096;
     
     public VSConnection(Socket openConnection) {
         connection = openConnection;
@@ -41,7 +39,7 @@ public class VSConnection {
         
         private static class HeaderHelper{
             
-            public static final int MAX_MESSAGE_LENGTH = 2^7;
+            public static final int MAX_MESSAGE_LENGTH = (int) Math.pow(2, 7);
 
             private static final byte NEXT_MESSAGE_INDICATOR_FLAG = (byte) 0x80;
             private static final byte CLEAN_MESSAGE_INDICATOR_FLAG = (byte) 0x7F;
@@ -55,7 +53,9 @@ public class VSConnection {
             }
             
             public static int getMessageLength(byte header){
-                return (int) (header | CLEAN_MESSAGE_INDICATOR_FLAG);
+                int length =  (int) (header & CLEAN_MESSAGE_INDICATOR_FLAG);
+                
+                return length;
             }
             
             public static byte setMessageLength(byte header, int length) throws Exception {
@@ -77,8 +77,8 @@ public class VSConnection {
             }
         }
         
-        LinkedList<Byte> headers;
-        LinkedList<byte[]> messages;
+        List<Byte> headers = new LinkedList<Byte>();
+        List<byte[]> messages = new LinkedList<byte[]>();
         
         public VSMessage (byte[] plainMessage) throws Exception{
             
@@ -88,18 +88,26 @@ public class VSConnection {
 
                 int cpyFrom = index;
                 int cpyTo = Math.min(plainMessage.length - index, index + HeaderHelper.MAX_MESSAGE_LENGTH);
-                byte[] buffer = Arrays.copyOfRange(plainMessage, cpyFrom, cpyTo);
+                
+                int bufferLength = cpyTo - cpyFrom;
+                byte[] buffer = new byte[bufferLength];
+                System.arraycopy(plainMessage, cpyFrom, buffer, 0, bufferLength);
+                
+                index = cpyTo;
                 
                 boolean hasNextMessage = index < plainMessage.length;
                 
                 byte header = 0;
                 header = HeaderHelper.setNextMessageIndicator(header, hasNextMessage);
-                header = HeaderHelper.setMessageLength(header, cpyTo - cpyFrom);
+                header = HeaderHelper.setMessageLength(header, bufferLength);
                 
                 headers.add(header);
                 messages.add(buffer);
+                
+                index = cpyTo;
+
+                finishedParsing = !hasNextMessage;
             }
-            
         }
         
         public VSMessage (InputStream stream) throws Exception{
