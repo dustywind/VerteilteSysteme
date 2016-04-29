@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,8 +38,9 @@ public class VSConnection {
         
         private static class HeaderHelper{
             
-            public static final int MAX_MESSAGE_LENGTH = (int) Math.pow(2, 7);
+            public static final int MAX_MSG_LENGTH = (int) Byte.MAX_VALUE;
 
+            /*
             private static final byte NEXT_MESSAGE_INDICATOR_FLAG = (byte) 0x80;
             private static final byte CLEAN_MESSAGE_INDICATOR_FLAG = (byte) 0x7F;
             
@@ -74,6 +74,23 @@ public class VSConnection {
                     header = (byte) (header & 0x70);
                 }
                 return header;
+            }*/
+            
+            public static byte createHeader(boolean hasNextMsg, int msgLength) throws Exception{
+                boolean msgLengthIsValid = msgLength <= MAX_MSG_LENGTH || msgLength >= 0;
+                if(!msgLengthIsValid){
+                    throw new Exception("Invalid length");
+                }
+                byte header = (byte) (hasNextMsg ? -1 * msgLength : msgLength);
+                return header;
+            }
+            
+            public static int getLengthFromHeader(byte header){
+                return Math.abs(header);
+            }
+            
+            public static boolean headerIndicatesNextMessage(byte header){
+                return header < 0;
             }
         }
         
@@ -87,9 +104,14 @@ public class VSConnection {
             while(!finishedParsing){
 
                 int cpyFrom = index;
-                int cpyTo = Math.min(plainMessage.length - index, index + HeaderHelper.MAX_MESSAGE_LENGTH);
+                int cpyTo = cpyFrom + HeaderHelper.MAX_MSG_LENGTH < plainMessage.length 
+                        ? cpyFrom + HeaderHelper.MAX_MSG_LENGTH
+                        : plainMessage.length;
                 
                 int bufferLength = cpyTo - cpyFrom;
+                if(bufferLength < 0){
+                    "breakpoint".charAt(0);
+                }
                 byte[] buffer = new byte[bufferLength];
                 System.arraycopy(plainMessage, cpyFrom, buffer, 0, bufferLength);
                 
@@ -97,9 +119,8 @@ public class VSConnection {
                 
                 boolean hasNextMessage = index < plainMessage.length;
                 
-                byte header = 0;
-                header = HeaderHelper.setNextMessageIndicator(header, hasNextMessage);
-                header = HeaderHelper.setMessageLength(header, bufferLength);
+                byte header = HeaderHelper.createHeader(hasNextMessage, bufferLength);
+                
                 
                 headers.add(header);
                 messages.add(buffer);
@@ -119,14 +140,14 @@ public class VSConnection {
             boolean keepOnReading = true;
             while(keepOnReading){
                 byte header = readHeaderFromStream(stream);
-                int messageLength = HeaderHelper.getMessageLength(header);
+                int messageLength = HeaderHelper.getLengthFromHeader(header);
                 
                 byte[] messagePart = readDataFromStream(stream, messageLength);
                 
                 headers.add(header);
                 messages.add(messagePart);
                 
-                keepOnReading = HeaderHelper.getNextMessageIndicator(header);
+                keepOnReading = HeaderHelper.headerIndicatesNextMessage(header);
             }
         }
         
@@ -152,8 +173,8 @@ public class VSConnection {
             byte[] fullWrappedMessage = new byte[getLengthOfFullWrappedMessage()];
             
             int index = 0;
-            Iterator headerIter = headers.iterator();
-            Iterator msgIter = messages.iterator();
+            Iterator<Byte> headerIter = headers.iterator();
+            Iterator<byte[]> msgIter = messages.iterator();
             
             while(headerIter.hasNext() && msgIter.hasNext()){
                 byte header = (byte) headerIter.next();
@@ -171,7 +192,7 @@ public class VSConnection {
             int lengthOfHeaders = headers.size();
             int lengthOfMessages = 0;
             for(byte header : headers){
-                lengthOfMessages  += HeaderHelper.getMessageLength(header);
+                lengthOfMessages  += HeaderHelper.getLengthFromHeader(header);
             }
             return lengthOfHeaders + lengthOfMessages;
         }
