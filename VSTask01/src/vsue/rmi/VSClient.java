@@ -12,7 +12,9 @@ public class VSClient {
     private TestObjects.TestObject<Serializable>[] testObjs = new TestObjects.TestObject[]{
             TestObjects.wrappedInteger,
             TestObjects.shortString,
-            TestObjects.veryLongString
+            TestObjects.veryLongString,
+            TestObjects.intArray,
+            TestObjects.auction
     };
     
     private final String host;
