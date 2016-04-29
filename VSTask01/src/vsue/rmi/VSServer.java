@@ -7,52 +7,57 @@ import java.net.Socket;
 
 public class VSServer {
     
-    private final static String HOST = "localhost";
-    private final static int PORT = 9247;
-
-    public static void main(String[] args){
-        
+    public static void main(String[] args) {
+        ServerSocket listen = null;
         try{
-            ServerSocket listen = new ServerSocket(PORT);
+             listen = new ServerSocket(VSConfig.CommunicationSystem.PORT);
             
             while(true){
                 Socket incomming = listen.accept();
                 
                 Thread worker = new Thread(new VSServerWorker(incomming));
                 
-                // DEBUG
-                worker.run();
-                //worker.start();
-                
+                worker.start();
             }
-            
-            
         }catch (Exception e){
             e.printStackTrace();
+        }finally{
+            try{
+                if(listen != null){
+                    listen.close();
+                }
+            }catch(IOException e){
+                e.printStackTrace();
+            }
         }
-        
     }
     
-    public static class VSServerWorker implements Runnable {
+    private static class VSServerWorker implements Runnable {
         
         private Socket connection;
+        private VSObjectConnection objConn;
         
         public VSServerWorker(Socket connection){
             this.connection = connection;
+            VSConnection conn = new VSConnection(this.connection);
+            objConn = new VSObjectConnection(conn);
         }
 
         @Override
         public void run() {
             try {
-                VSConnection conn = new VSConnection(this.connection);
-                VSObjectConnection objConn = new VSObjectConnection(conn);
-
                 Serializable o = (Serializable) objConn.receiveObject();
-                objConn.sendObject(o);
                 
+                objConn.sendObject(o);
             } catch (Exception e) {
-
                 e.printStackTrace();
+            }finally{
+                
+                try {
+                    this.connection.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
             
             return;

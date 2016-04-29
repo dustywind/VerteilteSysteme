@@ -1,61 +1,71 @@
 package vsue.rmi;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.net.Socket;
 
-public class VSClient {
+import vsue.rmi.TestObjects.TestObject;
 
-    private final static String HOST = "localhost";
-    private final static int PORT = 9247;
+public class VSClient {
+    
+    @SuppressWarnings("unchecked")
+    private TestObjects.TestObject<Serializable>[] testObjs = new TestObjects.TestObject[]{
+            TestObjects.wrappedInteger,
+            TestObjects.shortString,
+            TestObjects.veryLongString
+    };
+    
+    private final String host;
+    private final int port;
+    
+    public VSClient(String host, int port){
+        this.host = host;
+        this.port = port;
+    }
+    
+    public boolean runTests(){
+        boolean success = true;
+        
+        for(TestObject<Serializable> tObj : testObjs){
+            Socket connSock = null;
+            try{
+                connSock = new Socket(host, port);
+                
+                VSConnection conn = new VSConnection(connSock);
+                VSObjectConnection objConn = new VSObjectConnection(conn);
+                
+                objConn.sendObject((Serializable) tObj.obj);
+                Serializable reply = objConn.receiveObject();
+                
+                success &= tObj.objIsEqualTo(reply);
+                
+            }catch(Exception e){
+                success = false;
+                e.printStackTrace();
+            }
+            finally{
+                try{
+                    if(connSock != null){
+                        connSock.close();
+                    }
+                } catch(IOException e){
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return success;
+        
+    }
     
     public static void main(String[] args){
         
-        try{
-            Socket s = new Socket(HOST, PORT);
-            VSConnection conn = new VSConnection(s);
-            VSObjectConnection objConn = new VSObjectConnection(conn);
-            
-            System.out.println(testConnection(objConn));
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-    
-    private static boolean testConnection(VSObjectConnection objConn) throws Exception{
+        VSClient client = new VSClient(
+                VSConfig.CommunicationSystem.HOST,
+                VSConfig.CommunicationSystem.PORT
+            );
         
-        boolean success = true;
-        
-        //success &= testPrimitiveInteger(objConn);
-        //success &= testWrappedInteger(objConn);
-        //success &= testShortString(objConn);
-        success &= testVeryLongString(objConn);
-        
-        return success;
+        boolean success = client.runTests();
+        System.out.println(success ? "Success" : "Failed");
     }
-    
-    private static boolean testPrimitiveInteger(VSObjectConnection objConn) throws Exception{
-        objConn.sendObject(TestObjects.primitiveInteger);
-        int receivedPrimitiveInteger = (Integer) objConn.receiveObject();
-        return  receivedPrimitiveInteger == TestObjects.primitiveInteger;
-    }
-    
-    private static boolean testWrappedInteger(VSObjectConnection objConn) throws Exception{
-        objConn.sendObject(TestObjects.wrappedInteger);
-        int receivedWrappedInteger = (Integer) objConn.receiveObject();
-        return  receivedWrappedInteger == TestObjects.wrappedInteger;
-    }
-    
-    private static boolean testShortString(VSObjectConnection objConn) throws Exception{
-        objConn.sendObject(TestObjects.shortString);
-        String receivedString = (String) objConn.receiveObject();
-        return receivedString.compareTo(TestObjects.shortString) == 0;
-    }
-    
-    private static boolean testVeryLongString(VSObjectConnection objConn) throws Exception{
-        objConn.sendObject(TestObjects.veryLongString);
-        String receivedString = (String) objConn.receiveObject();
-        return receivedString.compareTo(TestObjects.veryLongString) == 0;
-    }
-    
 }
