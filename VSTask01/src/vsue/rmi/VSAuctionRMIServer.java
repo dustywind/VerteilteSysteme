@@ -16,10 +16,15 @@ public class VSAuctionRMIServer extends VSAuctionServerImpl {
         
         
         try {
+            
+            String registryName = VSConfig.Rmi.REGISTRY_NAME;
+            int selectedPort = VSConfig.Rmi.SELECTED_PORT;
+            int registryPort = VSConfig.Rmi.REGISTRY_PORT;
+            
             VSAuctionService remoteAuction = 
-                    (VSAuctionService) UnicastRemoteObject.exportObject(auction, VSConfig.Rmi.SELECTED_PORT);
-            Registry registry = LocateRegistry.createRegistry(VSConfig.Rmi.REGISTRY_PORT);
-            registry.bind(VSConfig.Rmi.REGISTRY_NAME, remoteAuction);
+                    (VSAuctionService) UnicastRemoteObject.exportObject(auction, selectedPort);
+            Registry registry = LocateRegistry.createRegistry(registryPort);
+            registry.bind(registryName, remoteAuction);
             
         } catch (Exception e) {
             e.printStackTrace();

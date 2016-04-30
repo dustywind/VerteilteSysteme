@@ -54,6 +54,16 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
         /*
          * TODO: Implement event handler
          */
+        switch(event){
+        case AUCTION_END:
+            System.out.printf("Auction %s terminated.\n", auction);
+            break;
+        case AUCTION_WON:
+            System.out.printf("You've won auctin \"%s\"\n", auction);
+        case HIGHER_BID:
+            System.out.printf("Your bid has been accepted (%s)\n", auction);
+            break;
+        }
     }
 
     // ##################
