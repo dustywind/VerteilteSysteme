@@ -51,19 +51,18 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
 
     @Override
     public void handleEvent(VSAuctionEventType event, VSAuction auction) {
-        /*
-         * TODO: Implement event handler
-         */
         switch(event){
         case AUCTION_END:
             System.out.printf("Auction %s terminated.\n", auction);
             break;
         case AUCTION_WON:
-            System.out.printf("You've won auctin \"%s\"\n", auction);
+            System.out.printf("You've won auction \"%s\"\n", auction);
+            break;
         case HIGHER_BID:
-            System.out.printf("Your bid has been accepted (%s)\n", auction);
+            System.out.printf("Someone overbid you (%s)\n", auction);
             break;
         }
+        System.out.flush();
     }
 
     // ##################

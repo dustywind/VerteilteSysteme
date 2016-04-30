@@ -145,6 +145,7 @@ public class VSAuctionManager {
                         );
                     }
                 }
+                highestBidder = handler;
             }
             return bidIsHigher;
         }
