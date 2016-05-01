@@ -67,7 +67,47 @@ public class VSClient {
                 VSConfig.CommunicationSystem.PORT
             );
         
-        boolean success = client.runTests();
+        //client.test();
+        client.sendTestMessages();
+    }
+    
+    public void test(){
+        boolean success = runTests();
         System.out.println(success ? "Success" : "Failed");
+    }
+    public void sendTestMessages(){
+        
+        VSTestMessage[] tests = new VSTestMessage[]{
+                new VSTestMessage(1, "nummer eins", new Object[]{}),
+                new VSTestMessage(2, "nummer zwei", new Object[]{1,2,3,4,5})
+        };
+        
+        
+        for(VSTestMessage msg : tests){
+            Socket connSock = null;
+            try{
+                connSock = new Socket(host, port);
+                
+                VSConnection conn = new VSConnection(connSock);
+                VSObjectConnection objConn = new VSObjectConnection(conn);
+                
+                objConn.sendObject((Serializable) msg);
+                Serializable reply = objConn.receiveObject();
+                
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+            finally{
+                try{
+                    if(connSock != null){
+                        connSock.close();
+                    }
+                } catch(IOException e){
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        
     }
 }

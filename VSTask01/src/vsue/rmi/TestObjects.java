@@ -36,6 +36,13 @@ public class TestObjects {
         }
     };
     
+    public static final Comparator<VSTestMessage> vstestmessageComparer = new Comparator<VSTestMessage>(){
+        @Override
+        public int compare(VSTestMessage arg0, VSTestMessage arg1){
+            return arg0.compareTo(arg1);
+        }
+    };
+    
     public static final Comparator<VSAuction> auctionComparer = new Comparator<VSAuction>(){
         @Override
         public int compare(VSAuction arg0, VSAuction arg1){

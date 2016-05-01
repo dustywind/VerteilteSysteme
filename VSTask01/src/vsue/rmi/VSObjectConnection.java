@@ -11,7 +11,7 @@ public class VSObjectConnection {
     
     private VSConnection connection;
     
-    private HexPrinter hexPrinter = new HexPrinter();
+    private HexPrinter hexPrinter = new HexPrinter(16);
     
     private final int BUFFER_SIZE = 4096;
     

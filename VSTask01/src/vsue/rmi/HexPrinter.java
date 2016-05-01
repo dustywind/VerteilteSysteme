@@ -6,7 +6,7 @@ public class HexPrinter {
     private static final int MIN_BYTES_PER_ROW = 1;
     
     private boolean printRowNumber = true;
-    private final String SEPARATOR = "\t\t";
+    private final String SEPARATOR = "\t";
     private final char NON_READABLE_CHAR_REPLACEMENT = '.';
     
     public HexPrinter(){};
