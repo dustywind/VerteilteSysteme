@@ -77,13 +77,15 @@ public class VSClient {
     }
     public void sendTestMessages(){
         
-        VSTestMessage[] tests = new VSTestMessage[]{
-                new VSTestMessage(1, "nummer eins", new Object[]{}),
-                new VSTestMessage(2, "nummer zwei", new Object[]{1,2,3,4,5})
+        Serializable[] tests = new Serializable[]{
+                new VSTestMessage(), // empty
+                new VSTestMessage(1, null, null),
+                new VSTestMessage(1, "X", null),
+                new VSTestMessage(2, "nummer eins", new Object[]{1,2,3,4,5}),
+                new VSTestMessage(2, "nummer zwei", new Object[]{"Hallo", "welt"}),
         };
         
-        
-        for(VSTestMessage msg : tests){
+        for(Serializable msg : tests){
             Socket connSock = null;
             try{
                 connSock = new Socket(host, port);
@@ -91,8 +93,11 @@ public class VSClient {
                 VSConnection conn = new VSConnection(connSock);
                 VSObjectConnection objConn = new VSObjectConnection(conn);
                 
+                System.out.println("snd: " + msg.toString());
                 objConn.sendObject((Serializable) msg);
                 Serializable reply = objConn.receiveObject();
+                System.out.println("rec: " + ((VSTestMessage)reply).toString());
+                System.out.println();
                 
             }catch(Exception e){
                 e.printStackTrace();

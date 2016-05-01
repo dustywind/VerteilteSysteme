@@ -28,8 +28,6 @@ public class VSObjectConnection {
         
         byte[] bytesToSend = outStream.toByteArray();
         
-        
-        System.out.format("Sending object \"%s\"%s", object.toString(), System.lineSeparator());
         hexPrinter.print(bytesToSend);
         
         connection.sendChunk(bytesToSend);
