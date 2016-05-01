@@ -11,6 +11,8 @@ public class VSObjectConnection {
     
     private VSConnection connection;
     
+    private HexPrinter hexPrinter = new HexPrinter();
+    
     private final int BUFFER_SIZE = 4096;
     
     public VSObjectConnection(VSConnection connection){
@@ -25,6 +27,10 @@ public class VSObjectConnection {
         objectStream.writeObject(object);
         
         byte[] bytesToSend = outStream.toByteArray();
+        
+        
+        System.out.format("Sending object \"%s\"%s", object.toString(), System.lineSeparator());
+        hexPrinter.print(bytesToSend);
         
         connection.sendChunk(bytesToSend);
     }
