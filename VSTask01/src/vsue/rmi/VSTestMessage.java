@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class VSTestMessage implements 
@@ -15,6 +16,8 @@ public class VSTestMessage implements
     private int integer = 0;
     private String string = null;
     private Object[] objects = null;
+    
+    private transient final Charset charset = StandardCharsets.UTF_8;
     
     public VSTestMessage(){}
     
@@ -59,7 +62,7 @@ public class VSTestMessage implements
         
         StringBuilder sb = new StringBuilder("VSTestMessage: ");
         sb.append(integer).append("; ");
-        sb.append(string).append("; ");
+        sb.append('"').append(string).append('"').append("; ");
         sb.append("[");
         if(objects != null){
             int i = 0;
@@ -67,6 +70,7 @@ public class VSTestMessage implements
                 if(i > 0){
                     sb.append(", ");
                 }
+                i += 1;
                 sb.append(o.toString());
             }
         }
@@ -79,13 +83,14 @@ public class VSTestMessage implements
     @Override
     public void readExternal(ObjectInput oi) throws IOException,
             ClassNotFoundException {
+        
         integer = oi.readInt();
         
         int stringLength = oi.readInt();
         if(stringLength >= 0){
             byte[] stringAsBytes = new byte[stringLength];
             oi.read(stringAsBytes, 0, stringLength);
-            string = new String(stringAsBytes, StandardCharsets.US_ASCII);
+            string = new String(stringAsBytes, charset);
         }
         else{
             string = null;
@@ -102,10 +107,11 @@ public class VSTestMessage implements
 
     @Override
     public void writeExternal(ObjectOutput oo) throws IOException {
+        
         oo.writeInt(integer);
         
         if(string != null){
-            byte[] stringAsBytes = string.getBytes(StandardCharsets.US_ASCII);
+            byte[] stringAsBytes = string.getBytes(charset);
             int stringLength = stringAsBytes.length;
             oo.writeInt(stringLength);
             oo.write(stringAsBytes);

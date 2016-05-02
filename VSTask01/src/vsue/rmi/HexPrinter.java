@@ -41,8 +41,12 @@ public class HexPrinter {
         int rowNumber = 1;
         while(index < buffer.length){
             
+            if(rowNumber > 1){
+                sb.append(System.lineSeparator());
+            }
+
             if(printRowNumber){
-                sb.append(String.format("%04d%s", rowNumber, this.SEPARATOR));
+                sb.append(String.format("%04d:%s", rowNumber, this.SEPARATOR));
             }
             
             int bytesToPrint = Math.min(bytesPerRow, buffer.length - index);
@@ -50,7 +54,6 @@ public class HexPrinter {
             String hexifiedRow = hexifyRow(buffer, index, bytesToPrint);
             
             sb.append(hexifiedRow);
-            sb.append(System.lineSeparator());
             
             index += bytesPerRow;
             rowNumber += 1;

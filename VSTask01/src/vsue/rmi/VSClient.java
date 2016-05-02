@@ -80,7 +80,7 @@ public class VSClient {
         Serializable[] tests = new Serializable[]{
                 new VSTestMessage(), // empty
                 new VSTestMessage(1, null, null),
-                new VSTestMessage(1, "X", null),
+                new VSTestMessage(0xABCDEF12, "X", null),
                 new VSTestMessage(2, "nummer eins", new Object[]{1,2,3,4,5}),
                 new VSTestMessage(2, "nummer zwei", new Object[]{"Hallo", "welt"}),
         };

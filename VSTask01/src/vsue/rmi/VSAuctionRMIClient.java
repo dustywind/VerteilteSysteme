@@ -17,8 +17,6 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
     private VSAuctionService auctionServer = null;
     private VSAuctionEventHandler thisRemote = null;
 
-    private final int THIS_REMOTE_PORT = 0;
-
     public VSAuctionRMIClient(String userName) {
         this.userName = userName;
     }
@@ -30,7 +28,7 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
     public void init(String registryHost, int registryPort)
             throws RemoteException, NotBoundException {
         thisRemote = (VSAuctionEventHandler) UnicastRemoteObject.exportObject(
-                this, THIS_REMOTE_PORT);
+                this, VSConfig.Rmi.CLIENT_REMOTE_PORT);
 
         Registry registry = LocateRegistry.getRegistry(registryHost,
                 registryPort);
