@@ -72,19 +72,19 @@ public class VSAuctionManager {
             LOGGER.setLevel(Level.INFO);
         }
         
-        private VSAuction auction;
+        private final VSAuction auction;
         
-        private VSAuctionEventHandler owner;
+        private final VSAuctionEventHandler owner;
         private VSAuctionEventHandler highestBidder = null;
         
-        private int timeToLive;
+        private long validUntil;
 
         AuctionWrapper(VSAuction auction, int duration, VSAuctionEventHandler owner){
             super(auction.getName(), auction.getPrice());
             
             this.auction = auction;
             this.owner = owner;
-            this.timeToLive = duration;
+            validUntil = System.currentTimeMillis() + 1000*duration;
         }
         
         VSAuctionEventHandler getOwner(){
@@ -105,12 +105,16 @@ public class VSAuctionManager {
             return auction.getPrice();
         }
         
+        @Override
+        public void setPrice(int price){
+            auction.setPrice(price);
+        }
+        
         public VSAuction getAuction(){
             return auction;
         }
         
-        void decrementTimeToLive(){
-            timeToLive -= 1;
+        void checkStatus(){
             if(!isStillRunning()){
                 endAuction();
             }
@@ -130,12 +134,13 @@ public class VSAuctionManager {
         }
         
         boolean isStillRunning(){
-            return timeToLive > 0;
+            return System.currentTimeMillis() < validUntil;
         }
         
         boolean bid(int price, VSAuctionEventHandler handler){
             boolean bidIsHigher = price > getPrice();
             if(bidIsHigher){
+                setPrice(price);
                 if(highestBidder != null){
                     try {
                         highestBidder.handleEvent(VSAuctionEventType.HIGHER_BID, this.auction);
@@ -169,14 +174,14 @@ public class VSAuctionManager {
             try{
                 while(true){
                     
-                    Thread.sleep(1000);
+                    Thread.sleep(500);
                     
                     synchronized(auctionManager){
                         Iterator<AuctionWrapper> auctionIter = auctionManager.auctions.iterator();
                         while(auctionIter.hasNext()){
                             AuctionWrapper current = auctionIter.next();
                             
-                            current.decrementTimeToLive();
+                            current.checkStatus();
                             
                             if(!current.isStillRunning()){
                                 auctionIter.remove();

@@ -108,6 +108,8 @@ public class VSTestMessage implements
     @Override
     public void writeExternal(ObjectOutput oo) throws IOException {
         
+        
+        
         oo.writeInt(integer);
         
         if(string != null){
@@ -129,5 +131,4 @@ public class VSTestMessage implements
             oo.writeShort((short)-1);
         }
     }
-    
 }
