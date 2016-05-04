@@ -20,11 +20,12 @@ public class VSObjectConnection {
     }
 
     public void sendObject(Serializable object) throws Exception {
+
         ByteArrayOutputStream outStream = new ByteArrayOutputStream(BUFFER_SIZE);
-        
         ObjectOutputStream objectStream = new ObjectOutputStream(outStream);
         
         objectStream.writeObject(object);
+        objectStream.close();
         
         byte[] bytesToSend = outStream.toByteArray();
         
@@ -37,8 +38,7 @@ public class VSObjectConnection {
         
         byte[] serializedObject = connection.receiveChunk();
         
-        ByteArrayInputStream byteStream = 
-                new ByteArrayInputStream(serializedObject);
+        ByteArrayInputStream byteStream = new ByteArrayInputStream(serializedObject);
         ObjectInputStream deserializer = new ObjectInputStream(byteStream);
         
         Serializable readObject = (Serializable) deserializer.readObject();

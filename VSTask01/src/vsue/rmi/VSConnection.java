@@ -40,42 +40,6 @@ public class VSConnection {
             
             public static final int MAX_MSG_LENGTH = (int) Byte.MAX_VALUE;
 
-            /*
-            private static final byte NEXT_MESSAGE_INDICATOR_FLAG = (byte) 0x80;
-            private static final byte CLEAN_MESSAGE_INDICATOR_FLAG = (byte) 0x7F;
-            
-            private static final byte HAS_NEXT_MESSAGE_FLAG = (byte) 0x80;
-            private static final byte HAS_NO_NEXT_MESSAGE_FLAG = (byte) 0x00;
-            
-            public static boolean getNextMessageIndicator(byte header){
-                
-                return (header & NEXT_MESSAGE_INDICATOR_FLAG) > 0;
-            }
-            
-            public static int getMessageLength(byte header){
-                int length =  (int) (header & CLEAN_MESSAGE_INDICATOR_FLAG);
-                
-                return length;
-            }
-            
-            public static byte setMessageLength(byte header, int length) throws Exception {
-                if(length > MAX_MESSAGE_LENGTH){
-                    throw new Exception("message is too long");
-                }
-                header = (byte) (header | length);
-                return header;
-            }
-            
-            public static byte setNextMessageIndicator(byte header, boolean hasNextMessage){
-                
-                if(hasNextMessage){
-                    header = (byte) (header | (byte)0x80);
-                }else{
-                    header = (byte) (header & 0x70);
-                }
-                return header;
-            }*/
-            
             public static byte createHeader(boolean hasNextMsg, int msgLength) throws Exception{
                 boolean msgLengthIsValid = msgLength <= MAX_MSG_LENGTH || msgLength >= 0;
                 if(!msgLengthIsValid){
@@ -109,9 +73,6 @@ public class VSConnection {
                         : plainMessage.length;
                 
                 int bufferLength = cpyTo - cpyFrom;
-                if(bufferLength < 0){
-                    "breakpoint".charAt(0);
-                }
                 byte[] buffer = new byte[bufferLength];
                 System.arraycopy(plainMessage, cpyFrom, buffer, 0, bufferLength);
                 
@@ -162,7 +123,13 @@ public class VSConnection {
         private byte[] readDataFromStream(InputStream stream, int count) throws IOException{
             
             byte[] buffer = new byte[count];
-            stream.read(buffer);
+
+            int totalBytesRead = 0;
+            while(totalBytesRead < count){
+                int bytesRead = stream.read(buffer, totalBytesRead, count - totalBytesRead);
+                totalBytesRead += bytesRead;
+            }
+
             return buffer;
             
         }

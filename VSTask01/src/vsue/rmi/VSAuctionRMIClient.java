@@ -3,6 +3,7 @@ package vsue.rmi;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.rmi.NoSuchObjectException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -38,9 +39,12 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
     }
 
     public void shutdown() {
-        /*
-         * TODO: Implement client shutdown code
-         */
+        boolean forceUnexport = true;
+        try{
+        UnicastRemoteObject.unexportObject(this, forceUnexport);
+        } catch ( NoSuchObjectException e){
+            e.printStackTrace();
+        }
     }
 
     // #################
