@@ -2,8 +2,6 @@
 
 - cronhandler blockiert zu lange
 - eventhandler im eigenen thread mit timeout aufrufen
-- stream.read(buffer[]) Rueckgabewert pruefen
-- ObjectOutptStream flushen (bzw. close)
 
 
 
