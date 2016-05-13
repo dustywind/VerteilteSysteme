@@ -1,5 +1,6 @@
 package vsue.rmi;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -9,7 +10,7 @@ public class VSAuctionManager {
 
     private Thread cron;
     List<AuctionWrapper> auctions = new LinkedList<AuctionWrapper>();
-
+    HashMap<String, AuctionWrapper> auctionsByName = new HashMap<String, AuctionWrapper>();
     
     {
         cron = new Thread(new CronGarbageCollector(this));
@@ -24,10 +25,11 @@ public class VSAuctionManager {
     }
     
     private synchronized void addToAuctionList(AuctionWrapper auction) throws VSAuctionException{
-        if(auctions.contains(auction)){
+        if(auctionsByName.containsKey(auction.getName())){
             throw new VSAuctionException("Auction does already exist");
         }
         auctions.add(auction);
+        auctionsByName.put(auction.getName(), auction);
     }
     
     public synchronized VSAuction[] getAuctionsAsArray(){
@@ -53,10 +55,8 @@ public class VSAuctionManager {
     }
     
     private synchronized AuctionWrapper getAuctionByName(String auctionName){
-        for(AuctionWrapper auction : auctions){
-            if(auction.getName().compareTo(auctionName) == 0){
-                return auction;
-            }
+        if(auctionsByName.containsKey(auctionName)){
+            return auctionsByName.get(auctionName);
         }
         return null;
     }
@@ -148,22 +148,28 @@ public class VSAuctionManager {
                     
                     Thread.sleep(500);
                     
-                    synchronized(auctionManager){
-                        Iterator<AuctionWrapper> auctionIter = auctionManager.auctions.iterator();
-                        while(auctionIter.hasNext()){
-                            AuctionWrapper current = auctionIter.next();
-                            
-                            current.checkStatus();
-                            
-                            if(!current.isStillRunning()){
-                                auctionIter.remove();
-                            }
-                        }
-                    }
+                    removeOldAuctions();
                 }
                 
             } catch (InterruptedException e){
                 // thread is going to shut down
+            }
+        }
+        
+        private void removeOldAuctions(){
+            
+            synchronized(auctionManager){
+                Iterator<AuctionWrapper> auctionIter = auctionManager.auctions.iterator();
+                while(auctionIter.hasNext()){
+                    AuctionWrapper current = auctionIter.next();
+                    
+                    current.checkStatus();
+                    
+                    if(!current.isStillRunning()){
+                        auctionManager.auctionsByName.remove(current.getName());
+                        auctionIter.remove();
+                    }
+                }
             }
         }
         
