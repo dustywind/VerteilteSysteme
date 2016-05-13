@@ -1,11 +1,8 @@
 package vsue.rmi;
 
-import java.rmi.RemoteException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 public class VSAuctionManager {
@@ -64,14 +61,8 @@ public class VSAuctionManager {
         return null;
     }
     
-    
     private static class AuctionWrapper extends VSAuction {
-        
-        private final static Logger LOGGER = Logger.getLogger(AuctionWrapper.class.getName());
-        static {
-            LOGGER.setLevel(Level.INFO);
-        }
-        
+
         private final VSAuction auction;
         
         private final VSAuctionEventHandler owner;
@@ -85,14 +76,6 @@ public class VSAuctionManager {
             this.auction = auction;
             this.owner = owner;
             validUntil = System.currentTimeMillis() + 1000*duration;
-        }
-        
-        VSAuctionEventHandler getOwner(){
-            return owner;
-        }
-        
-        VSAuctionEventHandler getHighestBidder(){
-            return highestBidder;
         }
         
         @Override
@@ -121,15 +104,10 @@ public class VSAuctionManager {
         }
         
         void endAuction(){
-            try{
-                owner.handleEvent(VSAuctionEventType.AUCTION_END, this.auction);
-                if(highestBidder != null){
-                    highestBidder.handleEvent(VSAuctionEventType.AUCTION_WON, this.auction);
-                }
-            }catch(RemoteException e){
-                LOGGER.severe(
-                    String.format("Could not properly end auction \"%s\"", this.auction)
-                );
+
+            VSEventNotifier.queueNotifification(owner, VSAuctionEventType.AUCTION_END, this.auction);
+            if(highestBidder != null){
+                VSEventNotifier.queueNotifification(highestBidder, VSAuctionEventType.AUCTION_WON, this.auction);
             }
         }
         
@@ -142,13 +120,7 @@ public class VSAuctionManager {
             if(bidIsHigher){
                 setPrice(price);
                 if(highestBidder != null){
-                    try {
-                        highestBidder.handleEvent(VSAuctionEventType.HIGHER_BID, this.auction);
-                    } catch (RemoteException e) {
-                        LOGGER.severe(
-                            String.format("Could not inform user about change in auction \"%s\"", this)
-                        );
-                    }
+                    VSEventNotifier.queueNotifification(highestBidder, VSAuctionEventType.HIGHER_BID, this.auction);
                 }
                 highestBidder = handler;
             }

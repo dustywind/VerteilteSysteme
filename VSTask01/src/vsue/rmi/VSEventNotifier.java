@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class VSEventNotifier {
     
@@ -12,9 +13,10 @@ public class VSEventNotifier {
     private BlockingQueue<NotificationInfo> openNotifications = new LinkedBlockingQueue<NotificationInfo>();
     
     private Thread supervisor;
+    private SupervisorConfig supervisorConfig = new SupervisorConfig();
     
     {
-        supervisor = new Thread(new Supervisor(openNotifications));
+        supervisor = new Thread(new Supervisor(supervisorConfig, openNotifications));
         supervisor.start();
     }
     
@@ -50,11 +52,14 @@ public class VSEventNotifier {
     
     private static class Supervisor implements Runnable {
         
-        public final long timeout = 1000;
+        public final long queueTimeout = 500;
+        public final long joinTimeout = 1000;
         
         private BlockingQueue<NotificationInfo> notificationQueue;
+        private SupervisorConfig config;
         
-        public Supervisor(BlockingQueue<NotificationInfo> notificationQueue){
+        public Supervisor(SupervisorConfig config, BlockingQueue<NotificationInfo> notificationQueue){
+            this.config = config;
             this.notificationQueue = notificationQueue;
         }
         
@@ -62,19 +67,24 @@ public class VSEventNotifier {
         public void run(){
             
             try{
-                while(true){
+                while(!config.shutdown){
 
-                    NotificationInfo info = notificationQueue.take();
-                    
-                    Thread notifier = new Thread(new Notifier(info));
-                    notifier.start();
-                    notifier.join(timeout);
+                    NotificationInfo info = notificationQueue.poll(queueTimeout, TimeUnit.MILLISECONDS);
+                    if(info != null){
+                        Thread notifier = new Thread(new Notifier(info));
+                        notifier.start();
+                        notifier.join(joinTimeout);
+                    }
 
                 }
             }catch(InterruptedException e){
                 e.printStackTrace();
             }
         }
+    }
+    
+    private static class SupervisorConfig {
+        volatile boolean shutdown = false;
     }
     
     private static class NotificationInfo{
