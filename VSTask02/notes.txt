@@ -1,0 +1,9 @@
+
+
+- cronhandler blockiert zu lange
+- eventhandler im eigenen thread mit timeout aufrufen
+
+
+
+
+
