@@ -45,4 +45,8 @@ public class VSObjectConnection {
         
         return readObject;
     }
+    
+    public void close() throws IOException{
+        connection.close();
+    }
 }

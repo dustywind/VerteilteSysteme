@@ -34,6 +34,10 @@ public class VSConnection {
         return plainMsg;
     }
     
+    public void close() throws IOException{
+        connection.close();
+    }
+    
     public static class VSMessage {
         
         private static class HeaderHelper{
