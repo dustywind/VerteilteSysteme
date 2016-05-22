@@ -41,6 +41,11 @@ public class VSServer {
         private Object[] args;
         
         private Object result;
+        private Throwable thrownException;
+        
+        private boolean resultIsAnException(){
+            return thrownException != null;
+        }
         
         public RequestHandler(Socket connection){
             VSConnection conn = new VSConnection(connection);
@@ -58,8 +63,8 @@ public class VSServer {
                 
                 sendResponse();
                 
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (Throwable t) {
+                t.printStackTrace();
             }finally{
                 
                 try {
@@ -82,11 +87,22 @@ public class VSServer {
         
         private void executeRequest(){
             VSRemoteObjectManager objManager = VSRemoteObjectManager.getInstance();
-            result = objManager.invokeMethod(objId, methodName, args);
+            try{
+                result = objManager.invokeMethod(objId, methodName, args);
+            } catch (Throwable t){
+                thrownException = t;
+            }
         }
         
-        private void sendResponse() throws Exception{
-            VSResponse response = new VSResponse(result);
+        private void sendResponse() throws Throwable {
+            
+            VSResponse response ;
+            if(resultIsAnException()){
+                response = VSResponse.createErrorResponse(thrownException);
+            }
+            else{
+                response = VSResponse.createResponse(result);
+            }
             objConn.sendObject(response);
 
         }

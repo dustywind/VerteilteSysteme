@@ -9,12 +9,31 @@ import java.io.Serializable;
 public class VSResponse implements Serializable, Externalizable {
     
     private Object result;
+    private Throwable error = null;
     
-    public VSResponse(Object result){
+    private VSResponse(){
         
     }
     
-    public Object getResult(){
+    private boolean hasError(){
+        return error != null;
+    }
+    
+    public static VSResponse createResponse(Object result){
+        VSResponse response = new VSResponse();
+        response.result = result;
+        return response;
+    }
+    public static VSResponse createErrorResponse(Throwable error){
+        VSResponse response = new VSResponse();
+        response.error = error;
+        return response;
+    }
+    
+    public Object getResult() throws Throwable {
+        if(hasError()){
+            throw error;
+        }
         return result;
     }
 
@@ -22,10 +41,12 @@ public class VSResponse implements Serializable, Externalizable {
     public void readExternal(ObjectInput oi) throws IOException,
             ClassNotFoundException {
         result = oi.readObject();
+        error = (Throwable) oi.readObject();
     }
 
     @Override
     public void writeExternal(ObjectOutput oo) throws IOException {
         oo.writeObject(result);
+        oo.writeObject(error);
     }
 }
