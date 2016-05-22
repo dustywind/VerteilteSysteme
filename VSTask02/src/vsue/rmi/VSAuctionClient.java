@@ -41,12 +41,15 @@ public class VSAuctionClient implements VSAuctionEventHandler {
     }
 
     public void shutdown() {
+        /* TODO
         boolean forceUnexport = true;
         try{
+
             UnicastRemoteObject.unexportObject(this, forceUnexport);
         } catch ( NoSuchObjectException e){
             e.printStackTrace();
         }
+        */
     }
 
     // #################
