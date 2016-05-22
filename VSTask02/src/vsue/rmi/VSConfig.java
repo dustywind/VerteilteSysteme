@@ -3,7 +3,7 @@ package vsue.rmi;
 public class VSConfig {
     
     public static class Rmi{
-        public final static int SELECTED_PORT = 0;
+        public final static int SELECTED_PORT = 9247;
         public final static int REGISTRY_PORT = 12345;
         public final static String REGISTRY_NAME = "auctionServer";
         public final static int CLIENT_REMOTE_PORT = 0;

@@ -30,6 +30,10 @@ public class VSRemoteReference implements Serializable {
         this(orig, LOCAL_HOST, DEFAULT_PORT);
     }
     
+    public VSRemoteReference(Object orig, int port){
+        this(orig, LOCAL_HOST, port);
+    }
+    
     public VSRemoteReference(Object orig, String host, int port) {
         objectID = orig.hashCode();
         this.host = host;

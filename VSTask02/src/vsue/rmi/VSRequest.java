@@ -27,6 +27,10 @@ public class VSRequest implements Serializable, Externalizable {
         return args;
     }
     
+    public VSRequest(){
+        
+    }
+    
     public VSRequest(int objId, String methodName, Object[] args){
         this.objId = objId;
         this.methodName = methodName;

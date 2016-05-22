@@ -11,7 +11,7 @@ public class VSResponse implements Serializable, Externalizable {
     private Object result;
     private Throwable error = null;
     
-    private VSResponse(){
+    public VSResponse(){
         
     }
     

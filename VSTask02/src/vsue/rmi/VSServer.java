@@ -1,23 +1,47 @@
 package vsue.rmi;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 
 public class VSServer {
     
+    final static String registryName = VSConfig.Rmi.REGISTRY_NAME;
+    final static int selectedPort = VSConfig.Rmi.SELECTED_PORT;
+    final static int registryPort = VSConfig.Rmi.REGISTRY_PORT;
+    
     public static void main(String[] args) {
+        VSServer server = new VSServer();
+        server.prepareRegistry();
+        server.run();
+    }
+    
+    private void prepareRegistry(){
+
+        VSAuctionService auction = new VSAuctionServer();
+        VSRemoteObjectManager objManager = VSRemoteObjectManager.getInstance();
+        VSAuctionService remoteAuction = (VSAuctionService) objManager.exportObject(auction, selectedPort);
+
+        try {
+            Registry registry = LocateRegistry.createRegistry(registryPort);
+            registry.bind(registryName, remoteAuction);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+    }
+    
+    private void run(){
         ServerSocket listen = null;
         try{
-             listen = new ServerSocket(VSConfig.CommunicationSystem.PORT);
+            listen = new ServerSocket(VSConfig.CommunicationSystem.PORT);
             
             while(true){
                 Socket incomming = listen.accept();
-                
-                Thread worker = new Thread(new RequestHandler(incomming));
-                
-                worker.start();
+                handleRequest(incomming);
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -31,7 +55,14 @@ public class VSServer {
             }
         }
     }
+
     
+    private void handleRequest(Socket incomming){
+        Thread worker = new Thread(new RequestHandler(incomming));
+        
+        worker.start();
+    }
+
     private static class RequestHandler implements Runnable {
         
         private final VSObjectConnection objConn;

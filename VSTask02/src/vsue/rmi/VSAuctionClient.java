@@ -10,7 +10,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
-public class VSAuctionRMIClient implements VSAuctionEventHandler {
+public class VSAuctionClient implements VSAuctionEventHandler {
 
     /* The user name provided via command line. */
     private final String userName;
@@ -18,7 +18,7 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
     private VSAuctionService auctionServer = null;
     private VSAuctionEventHandler thisRemote = null;
 
-    public VSAuctionRMIClient(String userName) {
+    public VSAuctionClient(String userName) {
         this.userName = userName;
     }
 
@@ -28,11 +28,13 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
 
     public void init(String registryHost, int registryPort)
             throws RemoteException, NotBoundException {
+        /* TODO
         thisRemote = (VSAuctionEventHandler) UnicastRemoteObject.exportObject(
                 this, VSConfig.Rmi.CLIENT_REMOTE_PORT);
-
+        */
         Registry registry = LocateRegistry.getRegistry(registryHost,
                 registryPort);
+        
         auctionServer = (VSAuctionService) registry
                 .lookup(VSConfig.Rmi.REGISTRY_NAME);
 
@@ -41,7 +43,7 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
     public void shutdown() {
         boolean forceUnexport = true;
         try{
-        UnicastRemoteObject.unexportObject(this, forceUnexport);
+            UnicastRemoteObject.unexportObject(this, forceUnexport);
         } catch ( NoSuchObjectException e){
             e.printStackTrace();
         }
@@ -76,7 +78,11 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
         VSAuction auction = new VSAuction(auctionName, startingPrice);
 
         try {
+            /* TODO
             auctionServer.registerAuction(auction, duration, thisRemote);
+            */
+            auctionServer.registerAuction(auction, duration, null);
+            
             System.out.printf("registered auction %s\n", auction);
         } catch (RemoteException e) {
             e.printStackTrace();
@@ -111,8 +117,12 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
 
         try {
             boolean successfulBid;
+            /* TODO
             successfulBid = this.auctionServer.placeBid(userName, auctionName,
                     price, this);
+            */
+            successfulBid = this.auctionServer.placeBid(userName, auctionName,
+                            price, null);
 
             System.out.println(successfulBid ? SUCCESSFUL_BID_REPLY
                     : FAILED_BID_REPLY);
@@ -216,13 +226,13 @@ public class VSAuctionRMIClient implements VSAuctionEventHandler {
         // Check arguments
         if (args.length < 3) {
             System.err.println("usage: java "
-                    + VSAuctionRMIClient.class.getName()
+                    + VSAuctionClient.class.getName()
                     + " <user-name> <registry_host> <registry_port>");
             System.exit(1);
         }
 
         // Create and execute client
-        VSAuctionRMIClient client = new VSAuctionRMIClient(args[0]);
+        VSAuctionClient client = new VSAuctionClient(args[0]);
         try {
             client.init(args[1], Integer.parseInt(args[2]));
         } catch (RemoteException | NotBoundException e) {
