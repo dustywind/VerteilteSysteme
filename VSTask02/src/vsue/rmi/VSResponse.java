@@ -10,6 +10,10 @@ public class VSResponse implements Serializable, Externalizable {
     
     private Object result;
     
+    public VSResponse(Object result){
+        
+    }
+    
     public Object getResult(){
         return result;
     }
