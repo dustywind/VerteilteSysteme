@@ -21,7 +21,10 @@ public class VSEventNotifier {
     }
     
     public static void queueNotifification(VSAuctionEventHandler handler, VSAuctionEventType event, VSAuction auction){
-        singleton.queueNotification(new NotificationInfo(handler, event, auction));
+        
+        if(handler != null && event != null && auction != null){
+            singleton.queueNotification(new NotificationInfo(handler, event, auction));
+        }
     }
     
     private void queueNotification(NotificationInfo notInfo){

@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-public class VSRequest implements Serializable, Externalizable {
+public class VSRequest implements Serializable/*, Externalizable */{
     
     private transient final Charset charset = StandardCharsets.UTF_8;
     
@@ -37,7 +37,7 @@ public class VSRequest implements Serializable, Externalizable {
         this.args = args;
     }
     
-
+    /*
     @Override
     public void readExternal(ObjectInput oi) throws IOException,
             ClassNotFoundException {
@@ -90,6 +90,6 @@ public class VSRequest implements Serializable, Externalizable {
         }else{
             oo.writeShort((short)-1);
         }
-        
     }
+    */
 }

@@ -34,6 +34,8 @@ public class VSInvocationHandler implements InvocationHandler, Serializable {
                  method.getName(),
                  args
              );
+             
+             
              con.sendObject(request);
              
              VSResponse response = (VSResponse) con.receiveObject();

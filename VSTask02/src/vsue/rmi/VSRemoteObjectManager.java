@@ -47,10 +47,8 @@ public class VSRemoteObjectManager{
         VSRemoteReference remoteReference = new VSRemoteReference(obj, port);
         VSInvocationHandler handler = new VSInvocationHandler(remoteReference);
 
-        //ClassLoader cl = Remote.class.getClassLoader();
         ClassLoader cl = obj.getClass().getClassLoader();
         Class<?>[] intfs = ReflectionHelper.getAllInterfaces(obj.getClass());
-        
         
         proxy = (Remote) Proxy.newProxyInstance(cl, intfs, handler);
 
@@ -70,17 +68,13 @@ public class VSRemoteObjectManager{
         }
         
         try{
-            Class<?>[] paramTypes = new Class<?>[args.length];
-            for(int i = 0; i < args.length; ++i){
-                paramTypes[i] = args[i].getClass();
-            }
-            
-            Method method = obj.getClass().getMethod(genericMethodName, paramTypes);
+            Method method = ReflectionHelper.getMatchingMethod(
+                    obj.getClass(), genericMethodName, args
+                );
+
             
             result = method.invoke(obj, args);
             
-        } catch(NoSuchMethodException e){
-            e.printStackTrace();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
@@ -104,6 +98,64 @@ public class VSRemoteObjectManager{
                 }
             }
             return interfaces.toArray(new Class<?>[0]);
+        }
+        
+        public static Method getMatchingMethod(Class<?> cl, String methodName, Object[] params){
+            Method method = null;
+            Class<?>[] paramTypes = null;
+            
+            // TODO make better
+            for(Method m : cl.getMethods()){
+                if(methodName.compareTo(m.getName()) == 0
+                    && m.getParameterTypes().length == params.length){
+                    method = m;
+                }
+            }
+            
+            /*
+            for(Method m : cl.getMethods()){
+                if(genericMethodName.compareTo(m.toGenericString()) == 0){
+                    method = m;
+                }
+            }
+            */
+            
+            /*
+            if(params != null){
+                paramTypes = new Class<?>[params.length];
+                for(int i = 0; i < params.length; ++i){
+                    if(params[i] != null){
+                        paramTypes[i] = params[i].getClass();
+                    }
+                    else{
+                        paramTypes[i] = null;
+                    }
+                }
+            }*/
+            /*
+            for(Method m : cl.getMethods()){
+                if(methodName.compareTo(m.getName()) == 0){
+                    boolean match = true;
+                    Class<?>[] types = m.getParameterTypes();
+                    if(types.length != params.length){
+                        continue;
+                    }
+                    for(int i = 0; i < params.length; ++i){
+                        if(params[i] != null){
+                            if(params[i].getClass() != types[i]){
+                                match = false;
+                            }
+                        }
+                    }
+                    if(match){
+                        method = m;
+                    }
+                }
+            }
+            */
+            
+            return method;
+
         }
     }
     
