@@ -80,7 +80,7 @@ public class VSAuctionServer extends VSAuctionServerImpl {
             s = new Scanner(System.in);
             s.next();
         } catch(Exception e){
-            
+            e.printStackTrace();
         }
         finally{
             if(s != null){

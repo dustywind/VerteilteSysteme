@@ -6,24 +6,28 @@ import java.net.Socket;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class VSServer {
     
-    private List<Thread> listeners = new LinkedList<Thread>();
+    private Map<Thread, RequestListener> listeners = new HashMap<Thread, RequestListener>();
     
     private final long SHUTDOWN_GRACE = 300;
     
     public void serve(VSRemoteReference reference) throws IOException{
-        Thread listener = new Thread(new RequestListener(reference));
+        RequestListener requestListener = new RequestListener(reference);
+        Thread listener = new Thread(requestListener);
         listener.start();
-        listeners.add(listener);
+        listeners.put(listener, requestListener);
     }
     
     public void shutdown(){
-        for(Thread listener : listeners){
-            listener.interrupt();
+        for(Thread listener : listeners.keySet()){
+            RequestListener rListener = listeners.get(listener);
+            rListener.kill();
             try{
                 listener.join(SHUTDOWN_GRACE);
             } catch(InterruptedException e){
@@ -34,8 +38,11 @@ public class VSServer {
 
     
     private static class RequestListener implements Runnable {
-        private ServerSocket listen;
         public static final int RANDOM_PORT = 0;
+        
+        public volatile ServerSocket listen;
+        public volatile boolean stop = false;
+        
         public RequestListener(VSRemoteReference reference) throws IOException{
             listen = new ServerSocket(RANDOM_PORT);
             int port = listen.getLocalPort();
@@ -45,12 +52,14 @@ public class VSServer {
         public void run(){
             try{
                 
-                while(true){
+                while(!stop){
                     Socket incomming = listen.accept();
                     handleRequest(incomming);
                 }
-            }catch (Exception e){
-                e.printStackTrace();
+            } catch (Exception e){
+                if(!stop){
+                    e.printStackTrace();
+                }
             }finally{
                 try{
                     if(listen != null){
@@ -59,6 +68,15 @@ public class VSServer {
                 }catch(IOException e){
                     e.printStackTrace();
                 }
+            }
+        }
+        
+        public void kill(){
+            stop = true;
+            try{
+                listen.close();
+            } catch(Exception e){
+                
             }
         }
 
