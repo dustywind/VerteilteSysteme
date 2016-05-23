@@ -11,11 +11,12 @@ public class VSAuctionServer extends VSAuctionServerImpl {
     final static int selectedPort = VSConfig.Rmi.SELECTED_PORT;
     
     private static Registry registry;
+    private static VSServer server;
     
     public static void main(String[] args){
         
         VSAuctionService auctionService = new VSAuctionServer();
-        VSServer server = new VSServer();
+        server = new VSServer();
 
         try{
             init();
@@ -53,6 +54,7 @@ public class VSAuctionServer extends VSAuctionServerImpl {
     
     private static void shutdown(){
         shutdownRegistry();
+        shutdownServer();
     }
     
     private static void shutdownRegistry(){
@@ -68,8 +70,22 @@ public class VSAuctionServer extends VSAuctionServerImpl {
         }
     }
     
+    private static void shutdownServer(){
+        server.shutdown();
+    }
+    
     private static void waitForUserInput(){
-        Scanner s = new Scanner(System.in);
-        s.nextByte();
+        Scanner s = null;
+        try{
+            s = new Scanner(System.in);
+            s.next();
+        } catch(Exception e){
+            
+        }
+        finally{
+            if(s != null){
+                s.close();
+            }
+        }
     }
 }
