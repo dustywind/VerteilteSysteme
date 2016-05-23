@@ -1,14 +1,13 @@
 package vsue.rmi;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.HashSet;
 
 public class ReflectionHelper {
     
     public static Class<?>[] getAllInterfaces(Class<?> cl){
-        Set<Class<?>> interfaces = new TreeSet<Class<?>>();;
+        Set<Class<?>> interfaces = new HashSet<Class<?>>();;
         
         for(; cl != null; cl = cl.getSuperclass()){
             for(Class<?> i : cl.getInterfaces()){
