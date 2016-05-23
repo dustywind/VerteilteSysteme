@@ -7,57 +7,73 @@ import java.rmi.Remote;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class VSRemoteObjectManager{
     
     private static final VSRemoteObjectManager singleton = new VSRemoteObjectManager();
 
     public static final int DEFAULT_PORT = 0;
-
     
-    
-    private final ExportedObjectStorage STORAGE = new ExportedObjectStorage();
+    //private final ExportedObjectStorage STORAGE = new ExportedObjectStorage();
+    private final Map<Integer, Remote> PROXY_BY_ID = new HashMap<Integer, Remote>();
+    //private final Map<Integer, Remote> ORIG_BY_PROXY_ID = new HashMap<Integer, Remote>();
+    private final Map<Integer, VSRemoteReference> REMOTE_REFERENCE_BY_ID = new HashMap<Integer, VSRemoteReference>();
     
     public static VSRemoteObjectManager getInstance(){
         return singleton;
     }
     
-    public Remote exportObject(Remote obj) {
-        return exportObject(obj, DEFAULT_PORT);
+    private static Integer calculateId(Object obj){
+        return obj.hashCode();
     }
     
-    public Remote exportObject(Remote obj, int port){
+    public Remote exportObject(Remote obj){
         Remote proxy;
+        Integer id = calculateId(obj);
         
-        if(!STORAGE.containsObject(obj)){
-            proxy = proxify(obj, port);
-            STORAGE.insert(obj, obj);
+        if(!PROXY_BY_ID.containsKey(id)){
+            proxy = proxify(obj);
+            PROXY_BY_ID.put(id, obj);
         }else{
-            proxy = STORAGE.getById(ExportedObjectStorage.objectToId(obj));
+            proxy = PROXY_BY_ID.get(calculateId(obj));
         }
 
         return proxy;
     }
     
-    private Remote proxify(Remote obj, int port) {
+    private Remote proxify(Remote obj) {
         
         Remote proxy;
         
-        VSRemoteReference remoteReference = new VSRemoteReference(obj, port);
+        VSRemoteReference remoteReference = new VSRemoteReference(obj);
         VSInvocationHandler handler = new VSInvocationHandler(remoteReference);
 
         ClassLoader cl = obj.getClass().getClassLoader();
         Class<?>[] intfs = ReflectionHelper.getAllInterfaces(obj.getClass());
         
         proxy = (Remote) Proxy.newProxyInstance(cl, intfs, handler);
+        
+        //ORIG_BY_PROXY_ID.put(calculateId(proxy), obj);
+        REMOTE_REFERENCE_BY_ID.put(calculateId(obj), remoteReference);
 
         return proxy;
     }
     
-    public Object invokeMethod(int objectID, String genericMethodName, Object[] args){
+    public VSRemoteReference getRemoteReferenceForRemoteObj(Object obj){
+        return REMOTE_REFERENCE_BY_ID.get(calculateId(obj));
+    }
+    
+    /*
+    public Remote getRemoteForProxy(Remote proxy){
+        return ORIG_BY_PROXY_ID.get(calculateId(proxy));
+    }
+    */
+    
+    public Object invokeMethod(int objectID, String genericMethodString, Object[] args){
 
         Object result = null;
-        Remote obj = STORAGE.getById(objectID);
+        Remote obj = PROXY_BY_ID.get(objectID);
         if(args == null){
             args = new Object[0];
         }
@@ -67,11 +83,14 @@ public class VSRemoteObjectManager{
         }
         
         try{
-            Method method = ReflectionHelper.getMatchingMethod(
-                    obj.getClass(), genericMethodName, args
-                );
-
             
+            Method method = ReflectionHelper.getMatchingMethod(
+                    obj.getClass(), genericMethodString, args
+                );
+            
+            /*
+            Method method = ReflectionHelper.getMatchingMethodForVsMethodString(obj.getClass(), vsMethodString);
+            */
             result = method.invoke(obj, args);
             
         } catch (IllegalAccessException e) {
@@ -84,80 +103,7 @@ public class VSRemoteObjectManager{
         return result;
     }
     
-    private static class ReflectionHelper{
-        
-        public static Class<?>[] getAllInterfaces(Class<?> c){
-            List<Class<?>> interfaces = new LinkedList<Class<?>>();
-            
-            for(Class<?> current = c; current != null; current = current.getSuperclass()){
-                for(Class<?> n : current.getInterfaces()){
-                    if(!interfaces.contains(n)){
-                        interfaces.add(n);
-                    }
-                }
-            }
-            return interfaces.toArray(new Class<?>[0]);
-        }
-        
-        public static Method getMatchingMethod(Class<?> cl, String methodName, Object[] params){
-            Method method = null;
-            Class<?>[] paramTypes = null;
-            
-            // TODO make better
-            for(Method m : cl.getMethods()){
-                if(methodName.compareTo(m.getName()) == 0
-                    && m.getParameterTypes().length == params.length){
-                    method = m;
-                }
-            }
-            
-            /*
-            for(Method m : cl.getMethods()){
-                if(genericMethodName.compareTo(m.toGenericString()) == 0){
-                    method = m;
-                }
-            }
-            */
-            
-            /*
-            if(params != null){
-                paramTypes = new Class<?>[params.length];
-                for(int i = 0; i < params.length; ++i){
-                    if(params[i] != null){
-                        paramTypes[i] = params[i].getClass();
-                    }
-                    else{
-                        paramTypes[i] = null;
-                    }
-                }
-            }*/
-            /*
-            for(Method m : cl.getMethods()){
-                if(methodName.compareTo(m.getName()) == 0){
-                    boolean match = true;
-                    Class<?>[] types = m.getParameterTypes();
-                    if(types.length != params.length){
-                        continue;
-                    }
-                    for(int i = 0; i < params.length; ++i){
-                        if(params[i] != null){
-                            if(params[i].getClass() != types[i]){
-                                match = false;
-                            }
-                        }
-                    }
-                    if(match){
-                        method = m;
-                    }
-                }
-            }
-            */
-            
-            return method;
-
-        }
-    }
-    
+    /*
     private static class ExportedObjectStorage{
         private final HashMap<Integer, Remote> STORAGE = new HashMap<Integer, Remote>();
 
@@ -189,4 +135,5 @@ public class VSRemoteObjectManager{
             return STORAGE.containsKey(obj.hashCode());
         }
     }
+    */
 }

@@ -1,3 +1,3 @@
 #/bin/bash
 
-java -cp ./bin vsue.rmi.VSAuctionRMIServer
+java -cp ./bin vsue.rmi.VSServer

@@ -131,4 +131,5 @@ public class VSTestMessage implements
             oo.writeShort((short)-1);
         }
     }
+    
 }

@@ -5,62 +5,68 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class VSServer {
     
-    final static String registryName = VSConfig.Rmi.REGISTRY_NAME;
-    final static int selectedPort = VSConfig.Rmi.SELECTED_PORT;
-    final static int registryPort = VSConfig.Rmi.REGISTRY_PORT;
+    private List<Thread> listeners = new LinkedList<Thread>();
     
-    public static void main(String[] args) {
-        VSServer server = new VSServer();
-        server.prepareRegistry();
-        server.run();
+    private final long SHUTDOWN_GRACE = 300;
+    
+    public void serve(VSRemoteReference reference) throws IOException{
+        Thread listener = new Thread(new RequestListener(reference));
+        listener.start();
+        listeners.add(listener);
     }
     
-    private void prepareRegistry(){
-
-        VSAuctionService auction = new VSAuctionServer();
-        VSRemoteObjectManager objManager = VSRemoteObjectManager.getInstance();
-        VSAuctionService remoteAuction = (VSAuctionService) objManager.exportObject(auction, selectedPort);
-
-        try {
-            Registry registry = LocateRegistry.createRegistry(registryPort);
-            registry.bind(registryName, remoteAuction);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
-    }
-    
-    private void run(){
-        ServerSocket listen = null;
-        try{
-            listen = new ServerSocket(VSConfig.CommunicationSystem.PORT);
-            
-            while(true){
-                Socket incomming = listen.accept();
-                handleRequest(incomming);
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }finally{
+    public void shutdown(){
+        for(Thread listener : listeners){
+            listener.interrupt();
             try{
-                if(listen != null){
-                    listen.close();
-                }
-            }catch(IOException e){
+                listener.join(SHUTDOWN_GRACE);
+            } catch(InterruptedException e){
                 e.printStackTrace();
             }
         }
     }
 
     
-    private void handleRequest(Socket incomming){
-        Thread worker = new Thread(new RequestHandler(incomming));
+    private static class RequestListener implements Runnable {
+        private ServerSocket listen;
+        public static final int RANDOM_PORT = 0;
+        public RequestListener(VSRemoteReference reference) throws IOException{
+            listen = new ServerSocket(RANDOM_PORT);
+            int port = listen.getLocalPort();
+            reference.setPort(port);
+        }
         
-        worker.start();
+        public void run(){
+            try{
+                
+                while(true){
+                    Socket incomming = listen.accept();
+                    handleRequest(incomming);
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }finally{
+                try{
+                    if(listen != null){
+                        listen.close();
+                    }
+                }catch(IOException e){
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        private void handleRequest(Socket incomming){
+            Thread worker = new Thread(new RequestHandler(incomming));
+            
+            worker.start();
+        }
     }
 
     private static class RequestHandler implements Runnable {
@@ -135,9 +141,6 @@ public class VSServer {
                 response = VSResponse.createResponse(result);
             }
             objConn.sendObject(response);
-
         }
-        
-        
     }
 }

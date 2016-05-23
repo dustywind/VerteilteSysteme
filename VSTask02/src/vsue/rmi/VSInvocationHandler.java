@@ -15,8 +15,6 @@ public class VSInvocationHandler implements InvocationHandler, Serializable {
     
     public VSInvocationHandler(VSRemoteReference remoteReference){
         this.remoteReference = remoteReference;
-        
-        // receive Remote-object from server
     }
 
     @Override
@@ -31,10 +29,12 @@ public class VSInvocationHandler implements InvocationHandler, Serializable {
              
              VSRequest request = new VSRequest(
                  remoteReference.getObjectID(),
+                 /*
+                 ReflectionHelper.methodToVsMethodString(method),
+                 */
                  method.getName(),
                  args
              );
-             
              
              con.sendObject(request);
              

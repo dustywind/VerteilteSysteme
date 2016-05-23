@@ -2,6 +2,7 @@ package vsue.rmi;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -11,15 +12,31 @@ public class VSRemoteReference implements Serializable {
     private int port;
     private int objectID;
     
-    private static final String LOCAL_HOST = "localhost";
+    private static String LOCAL_HOST;
     private static final int DEFAULT_PORT = 0;
+    
+    static {
+        try{
+            LOCAL_HOST = InetAddress.getLocalHost().getHostName();
+        }catch(Exception e){
+            LOCAL_HOST = "localhost";
+        }
+    }
     
     public String getHost(){
         return host;
     }
     
+    void setHost(String host){
+        this.host = host;
+    }
+    
     public int getPort(){
         return port;
+    }
+    
+    void setPort(int port){
+        this.port = port;
     }
     
     public int getObjectID(){
