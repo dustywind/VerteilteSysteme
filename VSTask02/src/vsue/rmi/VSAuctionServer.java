@@ -11,23 +11,22 @@ public class VSAuctionServer extends VSAuctionServerImpl {
     final static int selectedPort = VSConfig.Rmi.SELECTED_PORT;
     
     private static Registry registry;
-    private static VSServer server;
     
     public static void main(String[] args){
         
         VSAuctionService auctionService = new VSAuctionServer();
-        server = new VSServer();
 
         try{
             init();
             
-            registerAuctionService(server, auctionService);
+            registerAuctionService(auctionService);
             
             waitForUserInput();
             
         }catch(Exception e){
             e.printStackTrace();
         }finally{
+            unregisterAuctionService(auctionService);
             shutdown();
         }
     }
@@ -36,7 +35,7 @@ public class VSAuctionServer extends VSAuctionServerImpl {
         registry = LocateRegistry.createRegistry(VSConfig.Rmi.REGISTRY_PORT);
     }
     
-    private static void registerAuctionService(VSServer server, VSAuctionService auctionService){
+    private static void registerAuctionService(VSAuctionService auctionService){
 
         VSRemoteObjectManager objManager = VSRemoteObjectManager.getInstance();
         VSAuctionService remoteAuction = (VSAuctionService) objManager.exportObject(auctionService);
@@ -44,17 +43,18 @@ public class VSAuctionServer extends VSAuctionServerImpl {
         try {
             registry.bind(registryName, remoteAuction);
             
-            VSRemoteReference reference = objManager.getRemoteReferenceForRemoteObj(auctionService);
-            server.serve(reference);
-            
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
     
+    private static void unregisterAuctionService(VSAuctionService auctionService){
+        VSRemoteObjectManager objManager = VSRemoteObjectManager.getInstance();
+        objManager.unexportObject(auctionService);
+    }
+    
     private static void shutdown(){
         shutdownRegistry();
-        shutdownServer();
     }
     
     private static void shutdownRegistry(){
@@ -70,9 +70,6 @@ public class VSAuctionServer extends VSAuctionServerImpl {
         }
     }
     
-    private static void shutdownServer(){
-        server.shutdown();
-    }
     
     private static void waitForUserInput(){
         Scanner s = null;

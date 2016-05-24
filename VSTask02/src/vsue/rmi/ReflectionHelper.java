@@ -56,7 +56,6 @@ public class ReflectionHelper {
         
         if(primitiveType){
             if(obj instanceof Number){
-                Number n = (Number) obj;
                 switch(cl.toString()){
                     case "byte":
                         return obj instanceof Byte;
