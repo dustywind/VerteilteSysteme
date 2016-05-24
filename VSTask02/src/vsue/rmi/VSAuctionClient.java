@@ -28,10 +28,6 @@ public class VSAuctionClient implements VSAuctionEventHandler {
 
     public void init(String registryHost, int registryPort)
             throws RemoteException, NotBoundException {
-        /*
-        thisRemote = (VSAuctionEventHandler) UnicastRemoteObject.exportObject(
-                this, VSConfig.Rmi.CLIENT_REMOTE_PORT);
-        */
         
         VSRemoteObjectManager objManager = VSRemoteObjectManager.getInstance();
         thisRemote = (VSAuctionEventHandler) objManager.exportObject(this);
@@ -47,15 +43,6 @@ public class VSAuctionClient implements VSAuctionEventHandler {
     }
 
     public void shutdown() {
-        /* TODO
-        boolean forceUnexport = true;
-        try{
-
-            UnicastRemoteObject.unexportObject(this, forceUnexport);
-        } catch ( NoSuchObjectException e){
-            e.printStackTrace();
-        }
-        */
         VSRemoteObjectManager objManager = VSRemoteObjectManager.getInstance();
         objManager.unexportObject(this);
     }
@@ -89,10 +76,7 @@ public class VSAuctionClient implements VSAuctionEventHandler {
         VSAuction auction = new VSAuction(auctionName, startingPrice);
 
         try {
-            /* TODO
             auctionServer.registerAuction(auction, duration, thisRemote);
-            */
-            auctionServer.registerAuction(auction, duration, null);
             
             System.out.printf("registered auction %s\n", auction);
         } catch (RemoteException e) {
@@ -128,12 +112,8 @@ public class VSAuctionClient implements VSAuctionEventHandler {
 
         try {
             boolean successfulBid;
-            /* TODO
             successfulBid = this.auctionServer.placeBid(userName, auctionName,
-                    price, this);
-            */
-            successfulBid = this.auctionServer.placeBid(userName, auctionName,
-                            price, null);
+                            price, thisRemote);
 
             System.out.println(successfulBid ? SUCCESSFUL_BID_REPLY
                     : FAILED_BID_REPLY);

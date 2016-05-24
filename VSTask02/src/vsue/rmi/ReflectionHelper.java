@@ -25,7 +25,6 @@ public class ReflectionHelper {
         for(Method m : cl.getMethods()){
             if(m.getName().compareTo(methodName) == 0){
                 Class<?>[] argTypes = m.getParameterTypes();
-                // TODO this is not reliable
                 if(argTypes.length == args.length){
                     boolean paramMatch = true;
                     for(int i = 0; i < args.length; ++i){
