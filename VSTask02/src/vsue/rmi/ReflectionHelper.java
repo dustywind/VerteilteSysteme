@@ -27,11 +27,59 @@ public class ReflectionHelper {
                 Class<?>[] argTypes = m.getParameterTypes();
                 // TODO this is not reliable
                 if(argTypes.length == args.length){
-                    match = m;
+                    boolean paramMatch = true;
+                    for(int i = 0; i < args.length; ++i){
+                        
+                        Class<?> argClass = argTypes[i];
+                        Object obj = args[i];
+                        
+                        paramMatch &= instanceIsAssignable(obj, argClass);
+                    }
+                    if(paramMatch){
+                        match = m;
+                    }
                 }
             }
         }
         
         return match;
+    }
+    
+    public static boolean instanceIsAssignable(Object obj, Class<?> cl){
+        
+        boolean primitiveType = cl.isPrimitive();
+        boolean nullInstance = obj == null;
+        
+        if(nullInstance){
+            return !primitiveType;
+        }
+        
+        if(primitiveType){
+            if(obj instanceof Number){
+                Number n = (Number) obj;
+                switch(cl.toString()){
+                    case "byte":
+                        return obj instanceof Byte;
+                    case "double":
+                        return obj instanceof Double;
+                    case "float":
+                        return obj instanceof Float;
+                    case "int":
+                        return obj instanceof Integer;
+                    case "long":
+                        return obj instanceof Long;
+                    case "short":
+                        return obj instanceof Short;
+                   default:
+                       return false;
+                }
+            }
+            else{
+                return false;
+            }
+        }
+        else{
+            return cl.isAssignableFrom(obj.getClass());
+        }
     }
 }
