@@ -8,12 +8,6 @@ import java.util.logging.Level;
 
 public class VSAuctionServerImpl implements VSAuctionService {
     
-    private final static Logger LOGGER = Logger.getLogger(VSAuctionServerImpl.class.getName());
-    
-    static {
-        LOGGER.setLevel(Level.INFO);
-    }
-
     private final VSAuctionManager auctionManager = new VSAuctionManager();
     
     @Override
@@ -21,15 +15,11 @@ public class VSAuctionServerImpl implements VSAuctionService {
             VSAuctionEventHandler handler) throws VSAuctionException,
             RemoteException {
 
-        LOGGER.info(String.format("registered auction (%s)", auction));
-        
         auctionManager.addAuction(auction, duration, handler);
     }
 
     @Override
-    public synchronized VSAuction[] getAuctions() throws RemoteException {
-
-        LOGGER.info("looking up running auctions");
+    public VSAuction[] getAuctions() throws RemoteException {
 
         return auctionManager.getAuctionsAsArray();
     }
