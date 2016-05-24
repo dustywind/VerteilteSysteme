@@ -12,19 +12,31 @@ public class VSEventNotifier {
     
     private BlockingQueue<NotificationInfo> openNotifications = new LinkedBlockingQueue<NotificationInfo>();
     
-    private Thread supervisor;
+    private Thread supervisor = null;
     private SupervisorConfig supervisorConfig = new SupervisorConfig();
     
-    {
-        supervisor = new Thread(new Supervisor(supervisorConfig, openNotifications));
-        supervisor.start();
-    }
     
     public static void queueNotifification(VSAuctionEventHandler handler, VSAuctionEventType event, VSAuction auction){
         
         if(handler != null && event != null && auction != null){
             singleton.queueNotification(new NotificationInfo(handler, event, auction));
+            singleton.startSupervisorIfRequired();
         }
+    }
+    
+    private synchronized void startSupervisorIfRequired(){
+        if(supervisor == null){
+            supervisor = new Thread(new Supervisor(supervisorConfig, openNotifications));
+            supervisor.start();
+        }
+    }
+    
+    static synchronized boolean clearSupervisorIfPossible(){
+        if(singleton.openNotifications.size() == 0){
+            singleton.supervisor = null;
+            return true;
+        }
+        return false;
     }
     
     private void queueNotification(NotificationInfo notInfo){
@@ -70,13 +82,18 @@ public class VSEventNotifier {
         public void run(){
             
             try{
-                while(!config.shutdown){
+                config.isRunning = true;
+                boolean shutdown = false;
+                while(!shutdown){
 
                     NotificationInfo info = notificationQueue.poll(queueTimeout, TimeUnit.MILLISECONDS);
                     if(info != null){
                         Thread notifier = new Thread(new Notifier(info));
                         notifier.start();
                         notifier.join(joinTimeout);
+                    }else{
+                        boolean supervisorCleared = VSEventNotifier.clearSupervisorIfPossible();
+                        shutdown = supervisorCleared;
                     }
 
                 }
@@ -88,6 +105,7 @@ public class VSEventNotifier {
     
     private static class SupervisorConfig {
         volatile boolean shutdown = false;
+        volatile boolean isRunning;
     }
     
     private static class NotificationInfo{
