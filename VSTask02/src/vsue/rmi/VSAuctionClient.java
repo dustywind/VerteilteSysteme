@@ -32,10 +32,10 @@ public class VSAuctionClient implements VSAuctionEventHandler {
         thisRemote = (VSAuctionEventHandler) UnicastRemoteObject.exportObject(
                 this, VSConfig.Rmi.CLIENT_REMOTE_PORT);
         */
-        /*
+        
         VSRemoteObjectManager objManager = VSRemoteObjectManager.getInstance();
         thisRemote = (VSAuctionEventHandler) objManager.exportObject(this);
-        */
+        
         
         Registry registry = LocateRegistry.getRegistry(
             registryHost,
@@ -56,6 +56,8 @@ public class VSAuctionClient implements VSAuctionEventHandler {
             e.printStackTrace();
         }
         */
+        VSRemoteObjectManager objManager = VSRemoteObjectManager.getInstance();
+        objManager.unexportObject(this);
     }
 
     // #################
