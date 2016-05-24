@@ -20,6 +20,7 @@ public class VSRemoteObjectManager{
     
     //private final ExportedObjectStorage STORAGE = new ExportedObjectStorage();
     private final Map<Integer, Remote> PROXY_BY_ID = new HashMap<Integer, Remote>();
+    private final Map<Integer, Remote> ORIG_BY_ID = new HashMap<Integer, Remote>();
     //private final Map<Integer, Remote> ORIG_BY_PROXY_ID = new HashMap<Integer, Remote>();
     private final Map<Integer, VSRemoteReference> REMOTE_REFERENCE_BY_ID = new HashMap<Integer, VSRemoteReference>();
     
@@ -37,12 +38,14 @@ public class VSRemoteObjectManager{
         
         if(!PROXY_BY_ID.containsKey(id)){
             proxy = proxify(obj);
-            PROXY_BY_ID.put(id, obj);
+            PROXY_BY_ID.put(id, proxy);
+            ORIG_BY_ID.put(id, obj);
         }else{
-            proxy = PROXY_BY_ID.get(calculateId(obj));
+            proxy = PROXY_BY_ID.get(id);
         }
 
         startServerIfRequired();
+        
         try{
             server.serve(getRemoteReferenceForRemoteObj(obj));
         } catch(IOException e){
@@ -97,7 +100,7 @@ public class VSRemoteObjectManager{
     public Object invokeMethod(int objectID, String genericMethodString, Object[] args){
 
         Object result = null;
-        Remote obj = PROXY_BY_ID.get(objectID);
+        Remote obj = ORIG_BY_ID.get(objectID);
         if(args == null){
             args = new Object[0];
         }
