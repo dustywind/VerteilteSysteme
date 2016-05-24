@@ -29,9 +29,6 @@ public class VSInvocationHandler implements InvocationHandler, Serializable {
              
              VSRequest request = new VSRequest(
                  remoteReference.getObjectID(),
-                 /*
-                 ReflectionHelper.methodToVsMethodString(method),
-                 */
                  method.getName(),
                  args
              );
